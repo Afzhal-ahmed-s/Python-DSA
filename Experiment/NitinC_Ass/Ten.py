@@ -1,5 +1,5 @@
 def add_arrays(arr1, arr2):
-    # Make the lengths of the arrays equal by adding leading zeros
+    # Making the lengths of the arrays equal by adding leading zeros
     length = max(len(arr1), len(arr2))
     arr1 = ([0] * (length - len(arr1))) + arr1
     arr2 = ([0] * (length - len(arr2))) + arr2

@@ -41,7 +41,6 @@ def insertion_sort(arr):
 
     return arr
 
-# Example usage
 unsorted_array = [64, 34, 25, 12, 22, 11, 90]
 print("Unsorted Array:", unsorted_array)
 
