@@ -1,10 +1,11 @@
 import pytest
-import Library_task1
+import Library
 
 def test_elementCheckInList():
 
     inputList = ["Orange", "Apple", "Jack Fruit", "Mango", "Lichi"]
     element = "Apple"
-    obj = Library_task1.LibraryTask1()
+    obj = Library.Library()
     obj.checkIfelementIsPresentInTheList(element, inputList)
+
 
