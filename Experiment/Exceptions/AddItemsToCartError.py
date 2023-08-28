@@ -1,0 +1,2 @@
+class AddItemsToCartError(Exception):
+    pass
