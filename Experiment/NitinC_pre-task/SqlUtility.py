@@ -1,5 +1,8 @@
 import mysql.connector
 
+import logging
+
+
 # Connect to the MySQL server
 class Sql:
 
@@ -21,7 +24,7 @@ class Sql:
             values = (cartId,)
             cursor.execute(sqlQueryFormat, values)
             connection.commit()
-            print(f"{cartId} inserted into TableOne!")
+            logging.info(f"{cartId} inserted into TableOne!")
 
 
         def add_TableTwo_Info(self, productId, cartId):
@@ -29,7 +32,7 @@ class Sql:
             values = (productId, cartId)
             cursor.execute(sqlQueryFormat, values)
             connection.commit()
-            print(f"{cartId} with productId: {productId} inserted into TableTwo!")
+            logging.info(f"{cartId} with productId: {productId} inserted into TableTwo!")
 
 
         def add_TableThree_Info(self, orderId, cartId, customerName):
@@ -37,4 +40,4 @@ class Sql:
             values = (orderId, cartId, customerName)
             cursor.execute(sqlQueryFormat, values)
             connection.commit()
-            print(f"{cartId} with orderId: {orderId} with customer name: {customerName} inserted into TableThree!")
+            logging.info(f"{cartId} with orderId: {orderId} with customer name: {customerName} inserted into TableThree!")

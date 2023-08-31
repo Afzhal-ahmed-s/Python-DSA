@@ -1,15 +1,21 @@
 import json
-
 import pytest
 import requests
-import Library
-from Experiment.Exceptions.AddItemsToCartError import AddItemsToCartError
-import jsonpath
-from faker import Faker
-import SqlLibrary
+import logging
+import subprocess
 
-obj = Library.Library()
-sqlGateway = SqlLibrary.Sql("localhost", "root", "new_password", "db1")
+from Utility import basicUtility
+from Utility import sqlUtility
+
+obj = basicUtility.Library()
+sqlGateway = sqlUtility.Sql("localhost", "root", "new_password", "db1")
+
+log_file_path = 'my_log_file.log'
+logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(levelname)s: %(message)s')
+
+# Run the secondary_script.py file
+subprocess.run(["python", "exp.py"])
+
 
 @pytest.mark.automate
 @pytest.mark.parametrize(
@@ -17,10 +23,17 @@ sqlGateway = SqlLibrary.Sql("localhost", "root", "new_password", "db1")
 )
 @pytest.mark.run(order=5)
 def test_automate_add_items_to_a_single_cart(productId):
-    print("automated addition for cartId: ", obj.getCartId())
-    if not add_items_to_cart(productId):
-        # pytest.skip("Skipping further parameterizations due to add_items_to_cart returning False")
-        raise AddItemsToCartError(f"Error occurred in add_items_to_cart with prodcutId: {productId}")
+    logging.info("automated addition for cartId: %s", obj.getCartId())
+    obj.log_message("info",f"automated addition for cartId: {obj.getCartId()}")
+
+    value = add_items_to_cart(productId)
+
+    # #soft assertion -> adding failure points to data structure or we can log them
+    if not value:
+       obj.addMessageToQueue(f"Error occurred in add_items_to_cart with productId: {productId}")
+
+
+    assert value, f"Error occurred in add_items_to_cart with productId: {productId} {value}"
 
 @pytest.mark.automate
 @pytest.mark.run(order=7)
@@ -35,9 +48,10 @@ def test_automate_create_cart_add_items_to_cart_create_an_order():
             test_automate_add_items_to_a_single_cart(productIds[i])
 
         test_create_new_order()
-        print(f"End to end automation testing {count}")
-        print("============================================================")
+        logging.info("End to end automation testing %d", count)
+        logging.info("============================================================")
         count += 1
+
 
 @pytest.mark.run(order=1)
 def test_checkAPIStatus():
@@ -67,9 +81,9 @@ def test_create_cart():
     jsonResponse = json.loads(response.text)
     created = jsonResponse['created']
     cartId = jsonResponse['cartId']
-    print("Cart created with cartId: ", cartId)
+    logging.info("Cart created with cartId: ", cartId)
     obj.setCartId(cartId)
-    print("Check: ", response.text)
+    # logging.info("Check: ", response.text)
 
     # DB
     sqlGateway.add_TableOne_Info(cartId)
@@ -85,11 +99,11 @@ def test_add_items_to_cart():
     url = obj.addItemToCartAPI(obj.getCartId())
     jsonPayload = dynamic_add_items_to_cart_file_handling(productId)
     response = requests.request("POST", url, headers=obj.header_with_content_type(), data=jsonPayload, timeout=30)
-    print("Current Check: ", response.text)
+    # print("Current Check: ", response.text)
 
     # DB
     sqlGateway.add_TableTwo_Info(str(productId), obj.getCartId())
-    print(f"CartId: {obj.getCartId()} with productId: {productId} persisted to tableTwo.")
+    logging.info(f"CartId: {obj.getCartId()} with productId: {productId} persisted to tableTwo.")
 
     assert response.status_code == expectedStatusCodeResponse
 
@@ -115,10 +129,10 @@ def test_create_new_order():
 
     #DB
     sqlGateway.add_TableThree_Info(orderId, cartId, customerName)
-    print(f"OrderId: {orderId} with cartId: {cartId} with customer name: {customerName}")
+    logging.info(f"OrderId: {orderId} with cartId: {cartId} with customer name: {customerName}")
     assert response.status_code == 201
 
-    print("New Order created: ", response.text)
+    logging.info("New Order created: ", response.text)
 
 
 def dynamic_add_items_to_cart_file_handling(productId):
@@ -152,14 +166,20 @@ def add_items_to_cart(productId):
 
     response = requests.request("POST", url, headers=obj.header_with_content_type(), data=jsonPayload, timeout=30)
     jsonResponse = json.loads(response.text)
-    print(response.text)
+    # print(response.text)
 
     #DB
     sqlGateway.add_TableTwo_Info(productId, obj.getCartId())
-    print(f"CartId: {obj.getCartId()} with productId: {productId} persisted to tableTwo.")
+    logging.info(f"CartId: {obj.getCartId()} with productId: {productId} persisted to tableTwo.")
 
     if "created" in jsonResponse:
         return True
+    else:
+        return False
+
+# soft assertion explanation
+def test_give_me_all_messages_in_queues():
+    obj.getAllMessageFromQueues()
 
 
 

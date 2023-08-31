@@ -6,7 +6,7 @@ import Library
 from Experiment.Exceptions.AddItemsToCartError import AddItemsToCartError
 import jsonpath
 from faker import Faker
-import SqlLibrary
+import SqlUtility
 
 obj = Library.Library()
 sqlGateway = SqlLibrary.Sql("localhost", "root", "new_password", "db1")
